@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 import joblib
 import numpy as np
 import os
+import logging
 
 app = FastAPI()
 
@@ -35,14 +36,22 @@ model_paths = {
     }
 }
 
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Load all models into a dictionary
-models = {
-    soil_type: {
-        target: joblib.load(os.path.join("/app/model", model_paths[soil_type][target]))
-        for target in model_paths[soil_type]
-    }
-    for soil_type in model_paths
-}
+models = {}
+try:
+    for soil_type in model_paths:
+        models[soil_type] = {}
+        for target, path in model_paths[soil_type].items():
+            model_path = os.path.join("/app/model", path)
+            logger.info(f"Loading model for {soil_type} - {target} from {model_path}")
+            models[soil_type][target] = joblib.load(model_path)
+except Exception as e:
+    logger.error(f"Error loading models: {e}")
+    raise e
 
 # Default Section ==============================================================
 
