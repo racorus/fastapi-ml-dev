@@ -2,15 +2,16 @@ from typing import Union
 from fastapi import FastAPI, HTTPException
 import joblib
 import numpy as np
+import os
 
 app = FastAPI()
 
-# Load the best models for each target and soil type
-soil_types = ['clay', 'sand', 'silt']
-targets = ['lab_pH', 'lab_N', 'lab_P', 'lab_K', 'lab_EC']
+# Initialize the Service
 
-# Define the model file mapping
-model_files = {
+admin_password = ""
+
+# Define the model paths
+model_paths = {
     'clay': {
         'lab_pH': 'RandomForestRegressor_clay_lab_pH.joblib',
         'lab_N': 'GradientBoostingRegressor_clay_lab_N.joblib',
@@ -37,45 +38,58 @@ model_files = {
 # Load all models into a dictionary
 models = {
     soil_type: {
-        target: joblib.load(model_files[soil_type][target])
-        for target in targets
+        target: joblib.load(os.path.join("/app/model", model_paths[soil_type][target]))
+        for target in model_paths[soil_type]
     }
-    for soil_type in soil_types
+    for soil_type in model_paths
 }
+
+# Default Section ==============================================================
 
 @app.get("/")
 def read_root():
+    # Return Report or status
     return {"Hello": "World"}
+
+# Training Model Section ==============================================================
 
 @app.post("/add_sample", tags=["Training Section"])
 def add_sample(var1: float, var2: float, var3: float, var4: float):
+    # Add samples to the training dataset
     return {"message": f"add {var1} {var2} {var3} {var4}"}
 
 @app.post("/train", tags=["Training Section"])
 def train():
+    # Populate data and re fitting
+    # Get performance metric (RMSE etc.)
     return {"message": f"Model trained successfully with RMSE: {4.332}"}
 
 @app.post("/commit", tags=["Training Section"])
 def commit():
+    # Populate - Re-train Model - Save to file
+    # Retrieve Model
     return {"message": f"Model has been updated"}
+
+# Prediction Section ==============================================================
 
 @app.get("/predict", tags=["Prediction Section"])
 def predict(
-    soil_type: str, 
-    test_Temp: float, 
-    test_Humid: float, 
-    test_pH: float, 
-    test_N: float, 
-    test_P: float, 
-    test_K: float, 
-    test_Conductivity: float
+    soil_type: str,
+    temp: float,
+    humid: float,
+    ph: float,
+    n: float,
+    p: float,
+    k: float,
+    ec: float
 ):
     if soil_type not in models:
         raise HTTPException(status_code=400, detail="Invalid soil type")
+
+    features = np.array([[temp, humid, ph, n, p, k, ec]])
     
-    features = [test_Temp, test_Humid, test_pH, test_N, test_P, test_K, test_Conductivity]
-    input_array = np.array([features])
-    
-    predictions = {target: models[soil_type][target].predict(input_array)[0] for target in targets}
-    
+    predictions = {}
+    for target, model in models[soil_type].items():
+        predictions[target] = model.predict(features)[0]
+
     return predictions
