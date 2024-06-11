@@ -13,11 +13,10 @@ RUN pip install --no-cache-dir --upgrade setuptools wheel
 # Install requirements packages
 RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
-# Dump working resources to working directory
+# Copy app and models
 COPY ./app /app
-
-# Copy models
 COPY ./model /app/model
+COPY ./samples_training_data /app/samples_training_data
 
 # Run FastAPI app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
