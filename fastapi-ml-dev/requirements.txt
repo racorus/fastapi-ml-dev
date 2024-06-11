@@ -1,3 +1,0 @@
-fastapi
-scikit-learn
-pandas
