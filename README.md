@@ -18,3 +18,8 @@ ___
 1. <code>cd</code> to project directory
 2. run command <code>docker compose up -d --build</code>
 3. check Web UI at <code>{IP:port}</code> as defined
+
+##Test the Prediction Endpoint
+Send a request to the /predict endpoint with the required query parameters:
+http://localhost:80/predict?soil_type=clay&temp=25.0&humid=40.0&ph=6.5&n=10.0&p=15.0&k=20.0&ec=1.0
+
