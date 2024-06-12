@@ -14,10 +14,15 @@ ___
 4. Copy samples training data to <code>./data/</code> directory
 
 ## Installation
-
 1. <code>cd</code> to project directory
-2. run command <code>docker compose up -d --build</code>
+2. run command <code>docker-compose up -d --build</code>
 3. check Web UI at <code>{IP:port}</code> as defined
+
+## Clean
+docker system prune -a
+
+## Rebuild
+docker-compose up -d --build
 
 ## Test the Prediction Endpoint
 Send a request to the /predict endpoint with the required query parameters:
